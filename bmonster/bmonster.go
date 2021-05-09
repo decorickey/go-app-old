@@ -7,6 +7,7 @@ import (
 	"github.com/PuerkitoBio/goquery"
 	"go-app/app/models"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/url"
 	"os"
@@ -70,25 +71,23 @@ func (apiClient *APIClient) doRequest(rawurl, path, method string, params map[st
 	return resBody, err
 }
 
-func (apiClient APIClient) ScrapingProgramList(studioList []models.Studio) (programList []map[string]string, err error) {
-	// TODO いずれgoroutineに置き換えたい
-	for _, studio := range studioList {
-		// HTMLデータ取得
-		var baseURL = "https://www.b-monster.jp"
-		params := map[string]string{"studio_name": studio.Name, "studio_code": studio.Code}
-		body, err := apiClient.doRequest(baseURL, "/reserve/", "GET", params, nil)
-		if err != nil {
-			return nil, err
-		}
-
-		// HTML解析
-		mapList, err := analyzeHTML(body, studio)
-		if err != nil {
-			return nil, err
-		}
-		programList = append(programList, mapList...)
+func (apiClient APIClient) ScrapingProgramList(ch chan []map[string]string, studio models.Studio) {
+	// HTMLデータ取得
+	var baseURL = "https://www.b-monster.jp"
+	params := map[string]string{"studio_name": studio.Name, "studio_code": studio.Code}
+	body, err := apiClient.doRequest(baseURL, "/reserve/", "GET", params, nil)
+	if err != nil {
+		log.Println(err)
+		ch <- make([]map[string]string, 0)
 	}
-	return programList, nil
+
+	// HTML解析
+	programList, err := analyzeHTML(body, studio)
+	if err != nil {
+		log.Println(err)
+		ch <- make([]map[string]string, 0)
+	 }
+	 ch <- programList
 }
 
 func (apiClient APIClient) GetLatestProgramList() ([]models.Program, error) {

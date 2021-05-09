@@ -40,9 +40,14 @@ func bmonsterScraping() error {
 
 	// スクレイピング
 	apiClient := bmonster.New("")
-	programList, err := apiClient.ScrapingProgramList(studioList)
-	if err != nil {
-		return err
+	ch := make(chan []map[string]string)
+	for _, studio := range studioList {
+		go apiClient.ScrapingProgramList(ch, studio)
+	}
+	programList := make([]map[string]string, 0)
+	for i := 0; i < len(studioList); i++ {
+		p := <- ch
+		programList = append(programList, p...)
 	}
 
 	// S3にアップロード
