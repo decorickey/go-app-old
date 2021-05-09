@@ -1,5 +1,19 @@
 # go-app
 
+## main
+
+### main.go
+
+WebAPIサーバー用main関数
+
+### lambdahandler.go
+
+スクレイピング処理用AWSLambda関数
+
+### apihandler.go
+
+APIGW+LambdaのAPI用Lambdaかんすう
+
 ## AWS Lambda
 
 ### zipのビルド
